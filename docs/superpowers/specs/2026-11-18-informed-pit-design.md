@@ -242,9 +242,16 @@ Built with the `/grafana-wall` skill (one fixed template), fed by `status.json` 
 the wall's refresh, like the other tiles). Slot 17 is free (BTC-Predictability released 2026-11-16).
 - Top bar: status (RUNNING / PAUSED / CAP HIT / DOWN), day N of 30, health lights (watcher, scorer, RSS, Haiku,
   Sonnet, settlement), current task.
-- Chips: candidates today, PIT/EXPLAINED/no-buy counts, paper trades open/settled, P&L after fees, LLM spend
-  today/run, **NewsAPI chip** e.g. "NewsAPI free 1,940 left · 3 fallbacks today".
-- Charts (proposal, up to 4): cumulative paper P&L; candidates per day by verdict; spend per day; score distribution.
+- **Funnel chips (owner), run totals:** (1) **Math PIT**: moves that crossed the surprise-score threshold and became
+  candidates; (2) **To Sonnet**: candidates on the UNEXPLAINED path sent to Sonnet for verification (Sonnet's audits
+  of EXPLAINED candidates are not counted here); (3) **Paper buys**: Sonnet-confirmed buys that became paper trades.
+- Other chips: P&L after fees, verdict (provisional/final), LLM spend run/cap, **NewsAPI chip** e.g.
+  "NewsAPI free 1,940 left · 3 fallbacks today".
+- **Charts (owner): KPIs over time that show whether the project is succeeding** (author's pick of four, daily points):
+  1. Cumulative paper P&L after fees (settled), with the open-position mark-to-mid as a second line.
+  2. Daily funnel: Math PIT → To Sonnet → Paper buys (three series).
+  3. Settled win rate and P&L per contract, cumulative, with the 95 % event-clustered range as a band.
+  4. Net result after API costs: cumulative paper P&L minus cumulative LLM + NewsAPI spend.
 
 ## 13. Deploy and run
 
