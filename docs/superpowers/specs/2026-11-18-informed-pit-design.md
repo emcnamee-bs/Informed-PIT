@@ -24,7 +24,9 @@ Goals
 - Rust service on mini-mac **(owner)**; one program **(owner, option 1)**.
 - Focused set of Kalshi markets, prices checked every minute **(owner, option a)**.
 - Surprise score computed by plain Rust code, no LLM **(owner, option 2)**.
-- News search: Google News RSS primary; NewsAPI.ai only to cover RSS errors/gaps **(owner)**.
+- News search: free RSS keyword search primary; NewsAPI.ai only to cover RSS errors/gaps **(owner)**. The owner
+  picked Google News RSS; during the build (2026-11-19) Google's links proved unresolvable to publisher pages by
+  permitted means (0/40), so the free RSS source is **Bing News RSS** (build ruling R14; 48/48 links resolve).
 - Article publish time from the page's own metadata; Wayback Machine as backup only **(owner)**.
 - Article window: from 15 min before the move began through to the moment of investigation **(owner)**.
 - One Haiku call per candidate article, JSON answer **(owner)**; Sonnet verifies and decides **(owner)**.
@@ -74,7 +76,7 @@ Anti-goals (would be a failure even if it "works")
 ## 5. Architecture
 
 ```
-          Kalshi public API                     Google News RSS ──(error)──> NewsAPI.ai (fallback)
+          Kalshi public API                     Bing News RSS ──(error)──> NewsAPI.ai (fallback)
                  │                                      │
    ┌─────────────▼──────────────┐       ┌───────────────▼────────────────┐
    │ universe (daily)           │       │ investigator (per candidate)   │
@@ -142,9 +144,10 @@ move start before the decision, ends as `stale` (no trade, fully logged).
 
 1. **Phrases (Haiku).** Input: market title, rules text, subtitle, move summary. Output JSON: exactly 50 phrases of
    2–4 words. Script validates count/word length/dedup; one retry; then proceed with what is valid (logged).
-2. **News search: Google News RSS.** `https://news.google.com/rss/search?q=…&hl=en-US&gl=US&ceid=US:en`. Phrases are
-   OR-combined into about 10 queries (quoted phrases, URL length kept safe). Spacing **≥ 3 s between RSS requests**,
-   exponential backoff on 429/503 (proposal). Using `when:1d` in the query to limit age is a builder check (unverified).
+2. **News search: Bing News RSS** (R14). `https://www.bing.com/news/search?q=…&format=rss&qft=interval="7"` (past
+   24 h, verified). Phrases are OR-combined into about 10 queries (quoted phrases, URL length kept safe); Bing returns
+   about 12 items per request. Spacing **≥ 3 s between RSS requests**, exponential backoff on 429/503. Bing's
+   `pubDate` is US Pacific wall time labelled GMT (measured +8 h in November) and is parsed as Pacific.
    Each request logs URL, status, latency, item count and the raw body (to `raw/`).
 3. **Fallback: NewsAPI.ai** runs for a query only when that RSS query fails: network error, HTTP error, rate limit,
    unparseable XML, or a broken/empty body where items were expected (an empty but valid result is not an error). It
@@ -152,8 +155,8 @@ move start before the decision, ends as `stale` (no trade, fully logged).
    Caps **(proposal)**: ≤ 10 tokens per candidate, ≤ 100 per day, and stop using it when the account has 200 tokens
    left (reserve for a deliberate later trial). Every fallback logs the triggering RSS error, tokens used, articles
    returned, and later whether any of those articles affected the verdict.
-4. **Fetch and date each article.** Dedupe by URL. Google News links are redirect URLs: resolve to the publisher URL
-   (exact method is a builder task, unverified). Fetch the page (polite UA, 10 s timeout, size cap), extract text
+4. **Fetch and date each article.** Dedupe by URL. Bing links are `bing.com/news/apiclick.aspx?...&url=<publisher>`
+   click links: the publisher URL is read from the `url` parameter (no request to Bing). Fetch the page (polite UA, 10 s timeout, size cap), extract text
    (readability-style), and read the publish time from page metadata in this order: `article:published_time`,
    JSON-LD `datePublished`, `<time datetime>`, other common meta tags. RSS `pubDate` is recorded alongside.
    **Wayback (backup only):** query the Wayback CDX API for the earliest capture when metadata is missing,
@@ -242,9 +245,16 @@ Built with the `/grafana-wall` skill (one fixed template), fed by `status.json` 
 the wall's refresh, like the other tiles). Slot 17 is free (BTC-Predictability released 2026-11-16).
 - Top bar: status (RUNNING / PAUSED / CAP HIT / DOWN), day N of 30, health lights (watcher, scorer, RSS, Haiku,
   Sonnet, settlement), current task.
-- Chips: candidates today, PIT/EXPLAINED/no-buy counts, paper trades open/settled, P&L after fees, LLM spend
-  today/run, **NewsAPI chip** e.g. "NewsAPI free 1,940 left · 3 fallbacks today".
-- Charts (proposal, up to 4): cumulative paper P&L; candidates per day by verdict; spend per day; score distribution.
+- **Funnel chips (owner), run totals:** (1) **Math PIT**: moves that crossed the surprise-score threshold and became
+  candidates; (2) **To Sonnet**: candidates on the UNEXPLAINED path sent to Sonnet for verification (Sonnet's audits
+  of EXPLAINED candidates are not counted here); (3) **Paper buys**: Sonnet-confirmed buys that became paper trades.
+- Other chips: P&L after fees, verdict (provisional/final), LLM spend run/cap, **NewsAPI chip** e.g.
+  "NewsAPI free 1,940 left · 3 fallbacks today".
+- **Charts (owner): KPIs over time that show whether the project is succeeding** (author's pick of four, daily points):
+  1. Cumulative paper P&L after fees (settled), with the open-position mark-to-mid as a second line.
+  2. Daily funnel: Math PIT → To Sonnet → Paper buys (three series).
+  3. Settled win rate and P&L per contract, cumulative, with the 95 % event-clustered range as a band.
+  4. Net result after API costs: cumulative paper P&L minus cumulative LLM + NewsAPI spend.
 
 ## 13. Deploy and run
 
@@ -259,7 +269,7 @@ the wall's refresh, like the other tiles). Slot 17 is free (BTC-Predictability r
 ## 14. Left to the builder
 
 - Crate choices (tokio, reqwest, rusqlite, quick-xml/rss, a readability crate, serde, tracing).
-- How to resolve Google News redirect links to publisher URLs; whether `when:` works in the RSS query.
+- (Resolved in build: Bing click links carry the publisher URL; `qft=interval="7"` limits to 24 h.)
 - Kalshi current fee formula and exact market/trade field names (verify against live API).
 - Category mapping for the universe (config file).
 - Prompt wording for the three LLM roles; truncation sizes; the score's minimum-trade floor.
