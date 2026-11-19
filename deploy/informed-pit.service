@@ -1,0 +1,16 @@
+[Unit]
+Description=Informed-PIT paper bot (Kalshi potential-insider-trading follower, paper only)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/Informed-PIT
+EnvironmentFile=%h/.config/informed-pit/env
+Environment=PIT_DATA=%h/informed-pit-data
+ExecStart=%h/Informed-PIT/target/release/informed-pit run
+Restart=on-failure
+RestartSec=30
+
+[Install]
+WantedBy=default.target
