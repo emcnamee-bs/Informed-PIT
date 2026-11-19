@@ -1,0 +1,41 @@
+{
+  "articles": {
+    "results": [
+      {
+        "uri": "8123456789",
+        "lang": "eng",
+        "isDuplicate": false,
+        "date": "2026-11-18",
+        "time": "14:32:10",
+        "dateTime": "2026-11-18T14:32:10Z",
+        "dateTimePub": "2026-11-18T14:20:00Z",
+        "dataType": "news",
+        "sim": 0,
+        "url": "https://www.example.com/fed-holds?utm_source=feed",
+        "title": "Fed holds rates steady",
+        "body": "The Federal Reserve held its benchmark rate steady on Wednesday, citing sticky inflation.",
+        "source": {"uri": "example.com", "dataType": "news", "title": "Example News"},
+        "image": null,
+        "eventUri": null,
+        "sentiment": 0.1,
+        "wgt": 123,
+        "relevance": 5
+      },
+      {
+        "uri": "8123456790",
+        "lang": "eng",
+        "date": "2026-11-18",
+        "time": "15:01:00",
+        "dateTime": "2026-11-18T15:01:00Z",
+        "url": "https://other.example.org/markets",
+        "title": "Markets wobble after Fed",
+        "body": "Stocks fell.",
+        "source": {"uri": "other.example.org", "dataType": "news", "title": "Other Wire"}
+      }
+    ],
+    "totalResults": 2,
+    "page": 1,
+    "count": 100,
+    "pages": 1
+  }
+}

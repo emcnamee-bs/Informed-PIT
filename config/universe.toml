@@ -1,0 +1,29 @@
+# Market universe rules. Edit and restart (or wait for the next 06:00 UTC refresh); no rebuild needed.
+#
+# A market is kept when its event's category is on the allow list, its series does not start with a
+# deny prefix, it closes in more than `min_close_secs` and at most `max_close_days` days, it has a
+# two-sided quote and traded in the last 7 days. The best `max_markets` by 24 h volume are kept.
+# Categories are Kalshi's own event category strings (case-insensitive match). Seen live
+# 2026-11-18 among traded two-sided markets closing within 14 days: Climate and Weather,
+# Commodities, Companies, Crypto, Economics, Elections, Entertainment, Financials, Mentions,
+# Politics, Science and Technology, Sports. All of those not listed below (weather, sports,
+# entertainment, mentions, crypto, commodities price ranges) are excluded by omission.
+
+allow_categories = [
+    "Politics",
+    "Elections",
+    "Economics",
+    "Financials",
+    "Companies",
+    "World",
+    "Science and Technology",
+    "Health",
+    "Transportation",
+]
+
+# Crypto and index price-range series (public, high-frequency tracking; no private knowledge).
+deny_series_prefixes = ["KXBTC", "KXETH", "KXSOL", "KXINX", "KXNASDAQ", "KXDOGE", "KXXRP"]
+
+max_markets = 300
+max_close_days = 14
+min_close_secs = 3600

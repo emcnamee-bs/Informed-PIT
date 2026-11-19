@@ -1,0 +1,13 @@
+target/
+*.db
+*.db-wal
+*.db-shm
+data/
+.env*
+.superpowers/
+# Runtime data, if PIT_DATA ever points into the checkout.
+logs/
+raw/
+status.json
+status.json.tmp
+PAUSE
